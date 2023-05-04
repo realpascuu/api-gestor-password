@@ -29,7 +29,7 @@ func JSON(w http.ResponseWriter, r *http.Request, statusCode int, data interface
 	return nil
 }
 
-func HTTPErr(w http.ResponseWriter, r *http.Request, statusCode int, message string) error {
+func HTTPError(w http.ResponseWriter, r *http.Request, statusCode int, message string) error {
 	msg := ErrorMessage{
 		Message: message,
 	}
