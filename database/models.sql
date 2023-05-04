@@ -3,7 +3,6 @@ CREATE TABLE IF NOT EXISTS users (
     email VARCHAR(150) NOT NULL UNIQUE,
     password varchar(256) NOT NULL,
     salt varchar(8) NOT NULL,
-    token varchar(256),
     CONSTRAINT pk_users PRIMARY KEY(id)
 );
 

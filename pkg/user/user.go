@@ -1,11 +1,10 @@
 package user
 
 type User struct {
-	ID       uint   `json:"id, omitempty"`
-	email    string `json:"email, omitempty"`
-	password string `json:"-"`
-	salt     string `json:"salt, omitempty"`
-	token    string `json:"-"`
+	ID       uint   `json:"id,omitempty"`
+	Email    string `json:"email,omitempty"`
+	Password string `json:"-"`
+	Salt     string `json:"salt,omitempty"`
 }
 
 func (u *User) HashPassword() error {
