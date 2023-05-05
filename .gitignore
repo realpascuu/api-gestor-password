@@ -1,4 +1,5 @@
-certs/
+certs/*.crt
+certs/*.key
 
 # Binaries for programs and plugins
 *.exe

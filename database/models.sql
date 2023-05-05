@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS users (
     id serial NOT NULL,
     email VARCHAR(150) NOT NULL UNIQUE,
     password varchar(256) NOT NULL,
-    salt varchar(8) NOT NULL,
+    salt varchar(150) NOT NULL,
     CONSTRAINT pk_users PRIMARY KEY(id)
 );
 

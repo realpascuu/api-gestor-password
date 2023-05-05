@@ -77,8 +77,8 @@ func (ur *UserRepository) GetByEmail(ctx context.Context, email string) (user.Us
 	return u, nil
 }
 
-func (ur *UserRepository) Create(ctx context.Context, u user.User) error {
-	q := `INSERT INTO users (email, password, salt) VALUES ($1, $2, $3)`
+func (ur *UserRepository) Create(ctx context.Context, u *user.User) error {
+	q := `INSERT INTO users (email, password, salt) VALUES ($1, $2, $3) RETURNING id`
 
 	if err := u.HashPassword(); err != nil {
 		return err

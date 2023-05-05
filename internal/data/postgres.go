@@ -2,7 +2,7 @@ package data
 
 import (
 	"database/sql"
-	"io/ioutil"
+	"gestorpasswordapi/database"
 	"os"
 
 	_ "github.com/joho/godotenv/autoload"
@@ -15,7 +15,8 @@ func getConnection() (*sql.DB, error) {
 }
 
 func MakeMigration(db *sql.DB) error {
-	b, err := ioutil.ReadFile("./database/models.sql")
+	var models = &database.Models
+	b, err := models.ReadFile("models.sql")
 	if err != nil {
 		return err
 	}
