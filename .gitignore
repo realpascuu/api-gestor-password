@@ -19,3 +19,5 @@ certs/*.key
 
 # executable in linux
 apigestorpassword
+.vscode
+.env
