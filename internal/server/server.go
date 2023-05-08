@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
 )
 
 // Server is a base server configuration.
@@ -18,28 +19,6 @@ type Server struct {
 
 func (serv *Server) Close() error {
 	// TODO: add resource closure
-	return nil
-}
-
-func (serv *Server) readKeyFile(keyPath string) ([]byte, error) {
-	certsFS := &certs.Certs
-	fileFS, err := certsFS.ReadFile(keyPath)
-	if err != nil {
-		return nil, err
-	}
-	return fileFS, nil
-}
-
-func (serv *Server) addTLSConfig(certContents []byte, keyContents []byte) error {
-	cert, err := tls.X509KeyPair(certContents, keyContents)
-	if err != nil {
-		return err
-	}
-
-	tlsConfig := &tls.Config{
-		Certificates: []tls.Certificate{cert},
-	}
-	serv.server.TLSConfig = tlsConfig
 	return nil
 }
 
@@ -63,10 +42,37 @@ func (serv *Server) Start() {
 	}
 }
 
+func (serv *Server) addTLSConfig(certContents []byte, keyContents []byte) error {
+	cert, err := tls.X509KeyPair(certContents, keyContents)
+	if err != nil {
+		return err
+	}
+
+	tlsConfig := &tls.Config{
+		Certificates: []tls.Certificate{cert},
+	}
+	serv.server.TLSConfig = tlsConfig
+	return nil
+}
+
+func (serv *Server) readKeyFile(keyPath string) ([]byte, error) {
+	certsFS := &certs.Certs
+	fileFS, err := certsFS.ReadFile(keyPath)
+	if err != nil {
+		return nil, err
+	}
+	return fileFS, nil
+}
+
 func New(hostname, port string) (*Server, error) {
 	r := chi.NewRouter()
 
-	// API routes version 1
+	// * show logs of the request to the server
+	r.Use(middleware.Logger)
+	// * recovers the app when a panic occurs
+	r.Use(middleware.Recoverer)
+
+	// * API routes version 1
 	r.Mount("/api/v1", v1.New())
 
 	serv := &http.Server{
