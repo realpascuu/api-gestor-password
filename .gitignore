@@ -21,3 +21,4 @@ certs/*.key
 apigestorpassword
 .vscode
 .env
+*.sql

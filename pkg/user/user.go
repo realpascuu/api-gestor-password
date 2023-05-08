@@ -1,12 +1,14 @@
 package user
 
 import (
+	"crypto/sha512"
 	"gestorpasswordapi/internal/utils"
 	"log"
 	"os"
 	"strconv"
 
 	_ "github.com/joho/godotenv/autoload"
+	"golang.org/x/crypto/pbkdf2"
 )
 
 type User struct {
@@ -16,23 +18,39 @@ type User struct {
 	Salt     string `json:"salt,omitempty"`
 }
 
-func (u *User) HashPassword() error {
-	// TODO: hash password in pbkdf2
-	return nil
+func (u *User) HashPassword(password string) string {
+	iter, err := strconv.Atoi(os.Getenv("ITER_PASSWD"))
+	if err != nil {
+		return ""
+	}
+	keyLen, err := strconv.Atoi(os.Getenv("KEYLEN_PASSWD"))
+	if err != nil {
+		return ""
+	}
+	hashedPassword := pbkdf2.Key([]byte(password), []byte(u.Salt), iter, keyLen, sha512.New)
+	result := ""
+	for _, k := range hashedPassword {
+		result += string(k)
+	}
+	return result
 }
 
-func (u *User) GenerateRandomSalt() error {
+func (u *User) PasswordMatch(password string) bool {
+	hashPassword := u.HashPassword(password)
+	return u.Password == hashPassword
+}
+
+func (u *User) GenerateRandomSalt() (string, error) {
 	var saltLengthStr = os.Getenv("SALT_LENGTH")
 	saltLengthInt, err := strconv.Atoi(saltLengthStr)
 	if err != nil {
 		log.Fatal("Check SALT_LENGTH environment variable")
-		return err
+		return "", err
 	}
 	salt, err := utils.GenerateRandomString(saltLengthInt)
 	if err != nil {
 		log.Fatal("Error generating random salt")
-		return err
+		return "", err
 	}
-	u.Salt = salt
-	return nil
+	return salt, nil
 }
