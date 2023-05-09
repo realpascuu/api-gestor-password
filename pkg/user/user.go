@@ -7,6 +7,8 @@ import (
 	"os"
 	"strconv"
 
+	"encoding/base64"
+
 	_ "github.com/joho/godotenv/autoload"
 	"golang.org/x/crypto/pbkdf2"
 )
@@ -28,11 +30,7 @@ func (u *User) HashPassword(password string) string {
 		return ""
 	}
 	hashedPassword := pbkdf2.Key([]byte(password), []byte(u.Salt), iter, keyLen, sha512.New)
-	result := ""
-	for _, k := range hashedPassword {
-		result += string(k)
-	}
-	return result
+	return base64.StdEncoding.EncodeToString(hashedPassword)
 }
 
 func (u *User) PasswordMatch(password string) bool {

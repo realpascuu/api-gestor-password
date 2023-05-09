@@ -22,3 +22,4 @@ apigestorpassword
 .vscode
 .env
 *.sql
+__debug_bin
