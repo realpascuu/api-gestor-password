@@ -6,6 +6,7 @@ import (
 	"gestorpasswordapi/pkg/claim"
 	"gestorpasswordapi/pkg/response"
 	"gestorpasswordapi/pkg/user"
+	"log"
 	"net/http"
 	"os"
 
@@ -19,7 +20,6 @@ type UserRouter struct {
 func (ur *UserRouter) Routes() http.Handler {
 	r := chi.NewRouter()
 
-	// TODO: add routes
 	r.Post("/", ur.CreateHandler)
 	r.Post("/login", ur.LoginHandler)
 	// ? r.Get("/{id}", ur.GetOneHandler)
@@ -51,7 +51,7 @@ func (ur *UserRouter) CreateHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	u.Salt = salt
 
-	password := u.HashPassword(u.Password)
+	password := u.GeneratePasswordHash(u.Password)
 	u.Password = password
 
 	err = ur.Repository.Create(ctx, &u)
@@ -79,11 +79,12 @@ func (ur *UserRouter) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	storedUser, err := ur.Repository.GetByEmail(ctx, u.Email)
 	if err != nil {
-		response.HTTPError(w, r, http.StatusNotFound, err.Error())
+		log.Fatal(err.Error())
+		response.HTTPError(w, r, http.StatusNotFound, "Incorrect email or password")
 		return
 	}
 	if !storedUser.PasswordMatch(u.Password) {
-		response.HTTPError(w, r, http.StatusBadRequest, "Incorrect password")
+		response.HTTPError(w, r, http.StatusBadRequest, "Incorrect email or password")
 		return
 	}
 
@@ -91,7 +92,8 @@ func (ur *UserRouter) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	signingKey := os.Getenv("SIGNING_KEY")
 	token, err := c.GetToken(signingKey)
 	if err != nil {
-		response.HTTPError(w, r, http.StatusInternalServerError, err.Error())
+		log.Fatal(err.Error())
+		response.HTTPError(w, r, http.StatusInternalServerError, "Error while checking token")
 		return
 	}
 

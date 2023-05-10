@@ -20,7 +20,7 @@ type User struct {
 	Salt     string `json:"salt,omitempty"`
 }
 
-func (u *User) HashPassword(password string) string {
+func (u *User) GeneratePasswordHash(password string) string {
 	iter, err := strconv.Atoi(os.Getenv("ITER_PASSWD"))
 	if err != nil {
 		return ""
@@ -34,7 +34,7 @@ func (u *User) HashPassword(password string) string {
 }
 
 func (u *User) PasswordMatch(password string) bool {
-	hashPassword := u.HashPassword(password)
+	hashPassword := u.GeneratePasswordHash(password)
 	return u.Password == hashPassword
 }
 
