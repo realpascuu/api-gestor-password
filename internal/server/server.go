@@ -18,7 +18,7 @@ type Server struct {
 }
 
 func (serv *Server) Close() error {
-	// TODO: add resource closure
+	serv.server.Close()
 	return nil
 }
 
