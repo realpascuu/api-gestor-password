@@ -1,4 +1,5 @@
-certs/
+certs/*.crt
+certs/*.key
 
 # Binaries for programs and plugins
 *.exe
@@ -18,3 +19,7 @@ certs/
 
 # executable in linux
 apigestorpassword
+.vscode
+.env
+*.sql
+__debug_bin
