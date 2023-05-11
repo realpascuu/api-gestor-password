@@ -27,6 +27,11 @@ func Authorizator(next http.Handler) http.Handler {
 			response.HTTPError(w, r, http.StatusUnauthorized, err.Error())
 			return
 		}
+		if c.IsTokenExpired() {
+			response.HTTPError(w, r, http.StatusUnauthorized, "token is expired")
+			return
+		}
+
 		// * save info in the request
 		ctx := r.Context()
 		ctx = context.WithValue(ctx, "id", c.ID)

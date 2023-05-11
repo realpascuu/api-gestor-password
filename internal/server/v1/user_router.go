@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/go-chi/chi"
 )
@@ -126,7 +127,7 @@ func (ur *UserRouter) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c := claim.Claim{ID: int(storedUser.ID)}
+	c := claim.Claim{ID: int(storedUser.ID), ExpDate: time.Now().Add(time.Hour * time.Duration(6)).Unix()}
 	signingKey := os.Getenv("SIGNING_KEY")
 	token, err := c.GetToken(signingKey)
 	if err != nil {
