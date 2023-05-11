@@ -28,7 +28,6 @@ func Authorizator(next http.Handler) http.Handler {
 			return
 		}
 		// * save info in the request
-		// TODO: get user from context
 		ctx := r.Context()
 		ctx = context.WithValue(ctx, "id", c.ID)
 		next.ServeHTTP(w, r.WithContext(ctx))
