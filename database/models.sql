@@ -5,7 +5,6 @@ CREATE TABLE IF NOT EXISTS users (
     salt varchar(150) NOT NULL,
     CONSTRAINT pk_users PRIMARY KEY(id)
 );
-
 CREATE TABLE IF NOT EXISTS passwords (
     id serial NOT NULL,
     user_id int NOT NULL,

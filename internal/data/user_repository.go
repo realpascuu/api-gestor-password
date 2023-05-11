@@ -90,8 +90,8 @@ func (ur *UserRepository) Create(ctx context.Context, u *user.User) error {
 	return nil
 }
 
-func (ur *UserRepository) Update(ctx context.Context, u user.User) error {
-	q := `UPDATE users SET email = $1, password = $2, salt = $3 WHERE id = $4`
+func (ur *UserRepository) Update(ctx context.Context, id uint, u user.User) error {
+	q := `UPDATE users set email=$1, password=$2, salt=$3 WHERE id = $4`
 
 	stmt, err := ur.Data.DB.PrepareContext(ctx, q)
 	if err != nil {
@@ -101,7 +101,7 @@ func (ur *UserRepository) Update(ctx context.Context, u user.User) error {
 	defer stmt.Close()
 
 	_, err = stmt.ExecContext(
-		ctx, u.Email, u.Password, u.Salt, u.ID,
+		ctx, u.Email, u.Password, u.Salt, id,
 	)
 
 	if err != nil {

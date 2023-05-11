@@ -2,18 +2,24 @@ package claim
 
 import (
 	"errors"
+	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
 )
 
 type Claim struct {
 	jwt.StandardClaims
-	ID int `json:"id"`
+	ID      int   `json:"id"`
+	ExpDate int64 `json:"exp_date"`
 }
 
 func (c *Claim) GetToken(signingString string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, c)
 	return token.SignedString([]byte(signingString))
+}
+
+func (c *Claim) IsTokenExpired() bool {
+	return time.Now().Unix() > c.ExpDate
 }
 
 func GetFromToken(tokenString, signingString string) (*Claim, error) {
@@ -43,5 +49,16 @@ func GetFromToken(tokenString, signingString string) (*Claim, error) {
 	if !ok {
 		return nil, errors.New("invalid user id")
 	}
-	return &Claim{ID: int(id)}, nil
+
+	expDateStr, ok := claim["exp_date"]
+	if !ok {
+		return nil, errors.New("token expired")
+	}
+
+	expDate, ok := expDateStr.(float64)
+	if !ok {
+		return nil, errors.New("invalid user id")
+	}
+
+	return &Claim{ID: int(id), ExpDate: int64(expDate)}, nil
 }
