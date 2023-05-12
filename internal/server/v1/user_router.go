@@ -24,6 +24,7 @@ func (ur *UserRouter) Routes() http.Handler {
 
 	r.Post("/", ur.CreateHandler)
 	r.With(auth.Authorizator).Put("/", ur.UpdateHandler)
+	r.With(auth.Authorizator).Delete("/", ur.DeleteHandler)
 	r.Post("/login", ur.LoginHandler)
 	// ? r.Get("/{id}", ur.GetOneHandler)
 	return r
@@ -72,11 +73,7 @@ func (ur *UserRouter) CreateHandler(w http.ResponseWriter, r *http.Request) {
 func (ur *UserRouter) UpdateHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	id := ctx.Value("id").(int)
-	/* id, err := strconv.Atoi(idStr)
-	if err != nil {
-		response.HTTPError(w, r, http.StatusBadRequest, err.Error())
-		return
-	} */
+
 	defer r.Body.Close()
 
 	var u user.User
@@ -103,6 +100,21 @@ func (ur *UserRouter) UpdateHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response.JSON(w, r, http.StatusOK, nil)
+}
+
+func (ur *UserRouter) DeleteHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	id := ctx.Value("id").(int)
+
+	defer r.Body.Close()
+
+	err := ur.Repository.Delete(ctx, uint(id))
+	if err != nil {
+		response.HTTPError(w, r, http.StatusNotFound, err.Error())
+		return
+	}
+
+	response.JSON(w, r, http.StatusNoContent, nil)
 }
 
 func (ur *UserRouter) LoginHandler(w http.ResponseWriter, r *http.Request) {

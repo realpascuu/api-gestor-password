@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS passwords (
     id serial NOT NULL,
     user_id int NOT NULL,
     content varchar(256) NOT NULL,
-    updated_at timestamp NOT NULL,
+    updated_at timestamp,
     CONSTRAINT pk_passwords PRIMARY KEY(id),
-    CONSTRAINT fk_posts_users FOREIGN KEY(user_id) REFERENCES users(id)
+    CONSTRAINT fk_posts_users FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
 );
