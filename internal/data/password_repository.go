@@ -34,3 +34,23 @@ func (pr *PasswordsRepository) GetOne(ctx context.Context, id string) (passwords
 
 	return p, nil
 }
+
+func (pr *PasswordsRepository) GetAll(ctx context.Context, user_id uint) ([]passwords.Passwords, error) {
+	q := `SELECT id, content, user_id, updated_at FROM passwords WHERE user_id = $1`
+
+	rows, err := pr.Data.DB.QueryContext(ctx, q, user_id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var passwordList []passwords.Passwords
+
+	for rows.Next() {
+		var p passwords.Passwords
+		rows.Scan(&p.ID, &p.Content, &p.UserID, &p.UpdatedAt)
+		passwordList = append(passwordList, p)
+	}
+
+	return passwordList, nil
+}
