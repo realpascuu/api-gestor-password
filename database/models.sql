@@ -5,8 +5,9 @@ CREATE TABLE IF NOT EXISTS users (
     salt varchar(150) NOT NULL,
     CONSTRAINT pk_users PRIMARY KEY(id)
 );
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE TABLE IF NOT EXISTS passwords (
-    id serial NOT NULL,
+    id uuid DEFAULT uuid_generate_v4(),
     user_id int NOT NULL,
     content varchar(256) NOT NULL,
     updated_at timestamp,
