@@ -15,10 +15,18 @@ func defineUserRoutes(r *chi.Mux) {
 	r.Mount("/users", ur.Routes())
 }
 
+func definePasswordsRoutes(r *chi.Mux) {
+	ur := &PasswordsRouter{
+		Repository: &data.PasswordsRepository{Data: data.New()},
+	}
+
+	r.Mount("/passwords", ur.Routes())
+}
+
 func New() http.Handler {
 	r := chi.NewRouter()
 
 	defineUserRoutes(r)
-
+	definePasswordsRoutes(r)
 	return r
 }
