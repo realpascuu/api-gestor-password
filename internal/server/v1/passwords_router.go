@@ -17,6 +17,7 @@ type PasswordsRouter struct {
 func (pr *PasswordsRouter) Routes() http.Handler {
 	r := chi.NewRouter()
 
+	r.With(auth.Authorizator).Get("/{id}", pr.GetHandler)
 	r.With(auth.Authorizator).Post("/", pr.CreateHandler)
 	return r
 }
@@ -41,4 +42,23 @@ func (pr *PasswordsRouter) CreateHandler(w http.ResponseWriter, r *http.Request)
 	}
 
 	response.JSON(w, r, http.StatusCreated, p)
+}
+
+func (pr *PasswordsRouter) GetHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	id := ctx.Value("id").(int)
+
+	defer r.Body.Close()
+
+	idPassword := chi.URLParam(r, "id")
+	p, err := pr.Repository.GetOne(ctx, idPassword)
+	if err != nil {
+		response.HTTPError(w, r, http.StatusNotFound, "Password not found")
+		return
+	}
+	if p.UserID != uint(id) {
+		response.HTTPError(w, r, http.StatusUnauthorized, "You are not authorized")
+		return
+	}
+	response.JSON(w, r, http.StatusOK, p)
 }
