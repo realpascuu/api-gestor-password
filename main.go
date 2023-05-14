@@ -1,36 +1,39 @@
 package main
 
 import (
+	"os"
+	"os/signal"
+
+	"gestorpasswordapi/internal/data"
+	"gestorpasswordapi/internal/server"
 	"log"
-	"net/http"
+
+	_ "github.com/joho/godotenv/autoload"
 )
 
-func holaMundo(writer http.ResponseWriter, request *http.Request) {
-	writer.Header().Set("Content-Type", "text/plain")
-	var str = "hola mundo!"
-	writer.Write([]byte(str))
-}
-
-/* HTTPS PROTOCOL */
 func main() {
-	http.HandleFunc("/home", holaMundo)
-	err := http.ListenAndServeTLS("localhost:443", "certs/server.crt", "certs/server.key", nil)
+	hostname := os.Getenv("HOSTNAME")
+	port := os.Getenv("PORT")
+	serv, err := server.New(hostname, port)
 	if err != nil {
-		log.Fatal("ListenAndServe: ", err)
-	}
-}
-
-/*
-HTTP PROTOCOL
-func main() {
-	log.Println("Try to listen on port :8080")
-	http.HandleFunc("/home", holaMundo)
-	err := http.ListenAndServe(":8080", nil)
-	if err != nil {
-		log.Println("There was an error listening on port :8080", err)
-	} else {
-		log.Println("Listening on port :8080")
+		log.Fatal(err)
 	}
 
+	// connection to database
+	d := data.New()
+	if err := d.DB.Ping(); err != nil {
+		log.Fatal(err)
+	}
+
+	// start the server.
+	go serv.Start()
+
+	// Wait for an in interrupt.
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	<-c
+
+	// Attempt a graceful shutdown.
+	serv.Close()
+	data.Close()
 }
-*/
