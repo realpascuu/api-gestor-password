@@ -3,6 +3,7 @@ package data
 import (
 	"context"
 	"gestorpasswordapi/pkg/passwords"
+	"time"
 )
 
 type PasswordsRepository struct {
@@ -68,5 +69,25 @@ func (pr *PasswordsRepository) Delete(ctx context.Context, id string) error {
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+func (pr *PasswordsRepository) Update(ctx context.Context, id string, p passwords.Passwords) error {
+	q := `UPDATE passwords set content = $1, updated_at = $2 WHERE id = $3`
+
+	stmt, err := pr.Data.DB.PrepareContext(ctx, q)
+	if err != nil {
+		return err
+	}
+
+	defer stmt.Close()
+	_, err = stmt.ExecContext(
+		ctx, p.Content, time.Now().Format(time.RFC3339), id,
+	)
+
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
