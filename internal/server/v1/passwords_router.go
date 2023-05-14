@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"context"
 	"encoding/json"
 	auth "gestorpasswordapi/internal/middleware"
 	"gestorpasswordapi/pkg/passwords"
@@ -17,10 +18,11 @@ type PasswordsRouter struct {
 func (pr *PasswordsRouter) Routes() http.Handler {
 	r := chi.NewRouter()
 
-	r.With(auth.Authorizator).Get("/{id}", pr.GetHandler)
+	r.With(auth.Authorizator).With(pr.PasswordAuthenticator).Get("/{id}", pr.GetHandler)
 	r.With(auth.Authorizator).Get("/", pr.GetAllHandler)
 	r.With(auth.Authorizator).Post("/", pr.CreateHandler)
-	r.With(auth.Authorizator).Delete("/{id}", pr.DeleteHandler)
+	r.With(auth.Authorizator).With(pr.PasswordAuthenticator).Delete("/{id}", pr.DeleteHandler)
+	r.With(auth.Authorizator).With(pr.PasswordAuthenticator).Put("/{id}", pr.UpdateHandler)
 	return r
 }
 
@@ -48,20 +50,10 @@ func (pr *PasswordsRouter) CreateHandler(w http.ResponseWriter, r *http.Request)
 
 func (pr *PasswordsRouter) GetHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	id := ctx.Value("id").(int)
+	p := ctx.Value("password").(passwords.Passwords)
 
 	defer r.Body.Close()
 
-	idPassword := chi.URLParam(r, "id")
-	p, err := pr.Repository.GetOne(ctx, idPassword)
-	if err != nil {
-		response.HTTPError(w, r, http.StatusNotFound, "Password not found")
-		return
-	}
-	if p.UserID != uint(id) {
-		response.HTTPError(w, r, http.StatusUnauthorized, "You are not authorized")
-		return
-	}
 	response.JSON(w, r, http.StatusOK, p)
 }
 
@@ -82,26 +74,54 @@ func (pr *PasswordsRouter) GetAllHandler(w http.ResponseWriter, r *http.Request)
 
 func (pr *PasswordsRouter) DeleteHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	id := ctx.Value("id").(int)
+	p := ctx.Value("password").(passwords.Passwords)
 
-	defer r.Body.Close()
-
-	idPassword := chi.URLParam(r, "id")
-	p, err := pr.Repository.GetOne(ctx, idPassword)
-	if err != nil {
-		response.HTTPError(w, r, http.StatusNotFound, "Password not found")
-		return
-	}
-	if p.UserID != uint(id) {
-		response.HTTPError(w, r, http.StatusUnauthorized, "You are not authorized")
-		return
-	}
-
-	err = pr.Repository.Delete(ctx, idPassword)
+	err := pr.Repository.Delete(ctx, p.ID)
 	if err != nil {
 		response.HTTPError(w, r, http.StatusInternalServerError, "An error has ocurred")
 		return
 	}
 
-	response.JSON(w, r, http.StatusNoContent, "")
+	response.JSON(w, r, http.StatusNoContent, nil)
+}
+
+func (pr *PasswordsRouter) UpdateHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	p := ctx.Value("password").(passwords.Passwords)
+
+	var updatedPassword passwords.Passwords
+	err := json.NewDecoder((r.Body)).Decode(&updatedPassword)
+	if err != nil {
+		response.HTTPError(w, r, http.StatusBadRequest, err.Error())
+		return
+	}
+	err = pr.Repository.Update(ctx, p.ID, updatedPassword)
+	if err != nil {
+		response.HTTPError(w, r, http.StatusInternalServerError, "An error has ocurred")
+		return
+	}
+
+	response.JSON(w, r, http.StatusOK, nil)
+}
+
+func (pr *PasswordsRouter) PasswordAuthenticator(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		id := ctx.Value("id").(int)
+
+		defer r.Body.Close()
+
+		idPassword := chi.URLParam(r, "id")
+		p, err := pr.Repository.GetOne(ctx, idPassword)
+		if err != nil {
+			response.HTTPError(w, r, http.StatusNotFound, "Password not found")
+			return
+		}
+		if p.UserID != uint(id) {
+			response.HTTPError(w, r, http.StatusUnauthorized, "You are not authorized")
+			return
+		}
+		ctx = context.WithValue(ctx, "password", p)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
 }
