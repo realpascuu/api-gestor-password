@@ -54,3 +54,19 @@ func (pr *PasswordsRepository) GetAll(ctx context.Context, user_id uint) ([]pass
 
 	return passwordList, nil
 }
+
+func (pr *PasswordsRepository) Delete(ctx context.Context, id string) error {
+	q := `DELETE FROM passwords WHERE id = $1`
+
+	stmt, err := pr.Data.DB.PrepareContext(ctx, q)
+	if err != nil {
+		return err
+	}
+
+	defer stmt.Close()
+	_, err = stmt.ExecContext(ctx, id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
