@@ -130,7 +130,7 @@ func (ur *UserRouter) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	storedUser, err := ur.Repository.GetByEmail(ctx, u.Email)
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Println(err)
 		response.HTTPError(w, r, http.StatusNotFound, "Incorrect email or password")
 		return
 	}
@@ -143,7 +143,7 @@ func (ur *UserRouter) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	signingKey := os.Getenv("SIGNING_KEY")
 	token, err := c.GetToken(signingKey)
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Println(err)
 		response.HTTPError(w, r, http.StatusInternalServerError, "Error while checking token")
 		return
 	}
