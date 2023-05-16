@@ -47,7 +47,7 @@ func (u *User) GenerateRandomSalt() (string, error) {
 	}
 	salt, err := utils.GenerateRandomString(saltLengthInt)
 	if err != nil {
-		log.Fatal("Error generating random salt")
+		log.Println("Error generating random salt")
 		return "", err
 	}
 	return salt, nil
